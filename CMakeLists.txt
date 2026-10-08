@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
 
-# 1. Dépendance GLFW (gestion fenêtre / entrées)
+# 1. Dépendance GLFW
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -19,7 +19,7 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
 
-# 2. Dépendance GLAD (chargeur OpenGL)
+# 2. Dépendance GLAD
 FetchContent_Declare(
     glad
     GIT_REPOSITORY https://github.com/Dav1dde/glad.git
@@ -27,6 +27,9 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glad)
 
-# 3. Exécutable et liaisons
-add_executable(RendererApp src/main.cpp)
+# 3. Exécutable avec Shader.cpp inclus
+add_executable(RendererApp 
+    src/main.cpp 
+    src/Shader.cpp
+)
 target_link_libraries(RendererApp PRIVATE glfw glad)
