@@ -7,7 +7,7 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 include(FetchContent)
 
-# 1. Dépendance GLFW
+# 1. GLFW
 FetchContent_Declare(
     glfw
     GIT_REPOSITORY https://github.com/glfw/glfw.git
@@ -19,7 +19,7 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(glfw)
 
-# 2. Dépendance GLAD
+# 2. GLAD
 FetchContent_Declare(
     glad
     GIT_REPOSITORY https://github.com/Dav1dde/glad.git
@@ -27,10 +27,18 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(glad)
 
-# 3. Exécutable avec Shader.cpp inclus
+# 3. GLM (Maths 3D)
+FetchContent_Declare(
+    glm
+    GIT_REPOSITORY https://github.com/g-truc/glm.git
+    GIT_TAG        1.0.1
+)
+FetchContent_MakeAvailable(glm)
+
+# Exécutable
 add_executable(RendererApp 
     src/main.cpp 
     src/Shader.cpp
     src/Mesh.cpp
 )
-target_link_libraries(RendererApp PRIVATE glfw glad)
+target_link_libraries(RendererApp PRIVATE glfw glad glm::glm)

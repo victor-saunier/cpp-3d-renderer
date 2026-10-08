@@ -2,6 +2,7 @@
 
 #include <string>
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 
 class Shader {
 public:
@@ -10,11 +11,11 @@ public:
     Shader(const std::string& vertexPath, const std::string& fragmentPath);
     ~Shader();
 
-    // Empêche la copie pour respecter le cycle de vie RAII
     Shader(const Shader&) = delete;
     Shader& operator=(const Shader&) = delete;
 
     void use() const;
+    void setMat4(const std::string& name, const glm::mat4& mat) const;
 
 private:
     std::string readFile(const std::string& path);
