@@ -31,5 +31,6 @@ FetchContent_MakeAvailable(glad)
 add_executable(RendererApp 
     src/main.cpp 
     src/Shader.cpp
+    src/Mesh.cpp
 )
 target_link_libraries(RendererApp PRIVATE glfw glad)

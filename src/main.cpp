@@ -1,7 +1,10 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <vector>
+
 #include "Shader.hpp"
+#include "Mesh.hpp"
 
 int main() {
     if (!glfwInit()) {
@@ -21,7 +24,7 @@ int main() {
     }
     glfwMakeContextCurrent(window);
 
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
+    if (!gladLoadGLLoader(reinterpret_cast<GLADloadproc>(glfwGetProcAddress))) {
         std::cerr << "Erreur : initialisation GLAD impossible" << std::endl;
         glfwDestroyWindow(window);
         glfwTerminate();
@@ -30,48 +33,30 @@ int main() {
 
     glViewport(0, 0, 800, 600);
 
-    // Initialisation du Shader via les fichiers externes
-    Shader basicShader("shaders/basic.vert", "shaders/basic.frag");
+    // --- SCOPE DES RESSOURCES GPU ---
+    {
+        Shader basicShader("shaders/basic.vert", "shaders/basic.frag");
 
-    // Données des sommets du triangle (coordonnées normalisées X, Y, Z)
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f, // Bas gauche
-         0.5f, -0.5f, 0.0f, // Bas droite
-         0.0f,  0.5f, 0.0f  // Haut centre
-    };
+        std::vector<float> triangleVertices = {
+            -0.5f, -0.5f, 0.0f,
+             0.5f, -0.5f, 0.0f,
+             0.0f,  0.5f, 0.0f
+        };
+        Mesh triangleMesh(triangleVertices);
 
-    // Configuration VBO (mémoire GPU) et VAO (description des attributs)
-    unsigned int VAO, VBO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+        // Boucle de rendu
+        while (!glfwWindowShouldClose(window)) {
+            glfwPollEvents();
 
-    glBindVertexArray(VAO);
+            glClearColor(0.1f, 0.12f, 0.18f, 1.0f);
+            glClear(GL_COLOR_BUFFER_BIT);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+            basicShader.use();
+            triangleMesh.draw();
 
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-
-    // Boucle de rendu
-    while (!glfwWindowShouldClose(window)) {
-        glfwPollEvents();
-
-        // Fond sombre
-        glClearColor(0.1f, 0.12f, 0.18f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        // Dessin du triangle
-        basicShader.use();
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
-
-        glfwSwapBuffers(window);
-    }
-
-    // Nettoyage des buffers géométriques
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+            glfwSwapBuffers(window);
+        }
+    } 
 
     glfwDestroyWindow(window);
     glfwTerminate();
