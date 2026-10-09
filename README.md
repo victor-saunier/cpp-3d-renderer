@@ -25,17 +25,4 @@ A lightweight, cross-platform real-time 3D renderer written in modern **C++20** 
 
 ## Architecture Overview
 
-```text
-cpp-3d-renderer/
-├── assets/             # 3D models (.obj) and scenes (ignored in git)[cite: 6]
-├── shaders/            # Custom programmable GLSL shaders[cite: 6, 7]
-│   ├── basic.vert      # Model-View-Projection transforms, normal propagation[cite: 6]
-│   └── basic.frag      # Blinn-Phong lighting and specular calculation[cite: 6]
-├── src/
-│   ├── Camera.hpp/cpp  # First-person view matrix & input processing[cite: 6]
-│   ├── Mesh.hpp/cpp    # RAII-managed VAO, VBO, and EBO abstractions[cite: 6]
-│   ├── ModelLoader.hpp # OBJ parsing pipeline interfacing tinyobjloader[cite: 6]
-│   ├── Shader.hpp/cpp  # Shader compilation, linking, and uniform dispatch[cite: 6]
-│   └── main.cpp        # Window initialization, ImGui render loop, and events[cite: 6]
-├── .gitignore          # Build artifacts, IDE caches, and local assets[cite: 6, 7]
-└── CMakeLists.txt      # Root modern CMake configuration[cite: 6, 7]
+
