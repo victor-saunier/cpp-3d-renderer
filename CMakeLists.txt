@@ -46,7 +46,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(imgui)
 
-# Bibliothèque statique ImGui avec ses backends GLFW et OpenGL3
+# Bibliothèque statique ImGui
 add_library(imgui STATIC
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
@@ -62,10 +62,24 @@ target_include_directories(imgui PUBLIC
 )
 target_link_libraries(imgui PUBLIC glfw glad)
 
-# Exécutable
+# 5. tinyobjloader
+FetchContent_Declare(
+    tinyobjloader
+    GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
+    GIT_TAG        v2.0.0rc13
+)
+FetchContent_MakeAvailable(tinyobjloader)
+
+# --- Exécutable principal ---
 add_executable(RendererApp 
     src/main.cpp 
     src/Shader.cpp
     src/Mesh.cpp
+    src/ModelLoader.cpp
 )
+
+# Inclusion du dossier de headers tinyobjloader
+target_include_directories(RendererApp PRIVATE ${tinyobjloader_SOURCE_DIR})
+
+# Liens des bibliothèques vers l'exécutable
 target_link_libraries(RendererApp PRIVATE glfw glad glm::glm imgui)

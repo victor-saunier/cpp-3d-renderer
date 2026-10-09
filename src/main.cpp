@@ -13,22 +13,21 @@
 #include "Shader.hpp"
 #include "Mesh.hpp"
 #include "Camera.hpp"
+#include "ModelLoader.hpp"
 
 Camera camera;
 
-// Dimensions initiales plus confortables (16:9)
 int windowWidth = 1280;
 int windowHeight = 720;
 
 double lastX = 1280.0 / 2.0;
 double lastY = 720.0 / 2.0;
 bool firstMouse = true;
-bool cursorLocked = true; // Bascule caméra FPS vs Curseur ImGui
+bool cursorLocked = true;
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
 
-// Callback appelé à chaque redimensionnement manuel de la fenêtre
 void framebufferSizeCallback(GLFWwindow* /*window*/, int width, int height) {
     if (width > 0 && height > 0) {
         windowWidth = width;
@@ -53,7 +52,7 @@ void mouseCallback(GLFWwindow* /*window*/, double xpos, double ypos) {
     }
 
     float xoffset = static_cast<float>(xpos - lastX);
-    float yoffset = static_cast<float>(lastY - ypos); // Axe Y inversé
+    float yoffset = static_cast<float>(lastY - ypos);
 
     lastX = xpos;
     lastY = ypos;
@@ -128,7 +127,6 @@ int main() {
     glViewport(0, 0, windowWidth, windowHeight);
     glEnable(GL_DEPTH_TEST);
 
-    // Initialisation ImGui
     IMGUI_CHECKVERSION();
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO();
@@ -141,62 +139,22 @@ int main() {
     {
         Shader basicShader("shaders/basic.vert", "shaders/basic.frag");
 
-        std::vector<float> cubeVertices = {
-            // Arrière
-            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-             0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
+        // Chargement du modèle .obj
+        std::vector<Vertex> modelVertices;
+        std::vector<unsigned int> modelIndices;
 
-            // Avant
-            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-             0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f,  0.0f,  1.0f,
+        if (!ModelLoader::loadOBJ("assets/model.obj", modelVertices, modelIndices)) {
+            std::cerr << "Echec de chargement du modele 3D !" << std::endl;
+            return -1;
+        }
 
-            // Gauche
-            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-            -0.5f,  0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-            -0.5f, -0.5f, -0.5f, -1.0f,  0.0f,  0.0f,
-            -0.5f, -0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
-            -0.5f,  0.5f,  0.5f, -1.0f,  0.0f,  0.0f,
+        Mesh modelMesh(modelVertices, modelIndices);
 
-            // Droite
-             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-             0.5f,  0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-             0.5f, -0.5f, -0.5f,  1.0f,  0.0f,  0.0f,
-             0.5f, -0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-             0.5f,  0.5f,  0.5f,  1.0f,  0.0f,  0.0f,
-
-            // Bas
-            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-             0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-             0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-            -0.5f, -0.5f,  0.5f,  0.0f, -1.0f,  0.0f,
-            -0.5f, -0.5f, -0.5f,  0.0f, -1.0f,  0.0f,
-
-            // Haut
-            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-             0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-            -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
-            -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
-        };
-
-        Mesh cubeMesh(cubeVertices);
-
-        glm::vec3 objectColor(1.0f, 0.5f, 0.2f);
+        glm::vec3 objectColor(0.85f, 0.45f, 0.2f);
         glm::vec3 lightColor(1.0f, 1.0f, 1.0f);
-        glm::vec3 lightPosition(1.2f, 1.0f, 2.0f);
-        float shininess = 32.0f;
+        glm::vec3 lightPosition(2.0f, 4.0f, 3.0f);
+        float shininess = 64.0f;
+        float modelScale = 1.0f;
 
         while (!glfwWindowShouldClose(window)) {
             float currentFrame = static_cast<float>(glfwGetTime());
@@ -210,18 +168,22 @@ int main() {
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            // Calibrage fenêtre ImGui : placée en haut à gauche avec une largeur fixe
             ImGui::SetNextWindowPos(ImVec2(15, 15), ImGuiCond_FirstUseEver);
-            ImGui::SetNextWindowSize(ImVec2(360, 240), ImGuiCond_FirstUseEver);
+            ImGui::SetNextWindowSize(ImVec2(360, 280), ImGuiCond_FirstUseEver);
 
             {
                 ImGui::Begin("Parametres (Touche TAB)");
 
                 ImGui::Text("Performances : %.1f FPS (%.2f ms)", io.Framerate, 1000.0f / io.Framerate);
+                ImGui::Text("Geometrie : %zu sommets, %zu triangles", modelVertices.size(), modelIndices.size() / 3);
                 ImGui::Separator();
 
+                ImGui::Text("Modele");
+                ImGui::SliderFloat("Echelle", &modelScale, 0.05f, 5.0f);
+
+                ImGui::Separator();
                 ImGui::Text("Lumiere");
-                ImGui::SliderFloat3("Position", &lightPosition.x, -5.0f, 5.0f);
+                ImGui::SliderFloat3("Position", &lightPosition.x, -10.0f, 10.0f);
                 ImGui::ColorEdit3("Couleur", &lightColor.x);
 
                 ImGui::Separator();
@@ -236,8 +198,9 @@ int main() {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
             glm::mat4 model = glm::mat4(1.0f);
+            model = glm::scale(model, glm::vec3(modelScale));
+
             glm::mat4 view = camera.getViewMatrix();
-            // Utilisation dynamique de windowWidth et windowHeight pour le ratio d'aspect
             glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 100.0f);
 
             basicShader.use();
@@ -251,7 +214,7 @@ int main() {
             basicShader.setVec3("viewPos",     camera.position);
             basicShader.setFloat("shininess",  shininess);
 
-            cubeMesh.draw();
+            modelMesh.draw();
 
             ImGui::Render();
             ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
