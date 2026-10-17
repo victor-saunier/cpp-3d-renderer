@@ -1,6 +1,6 @@
 #pragma once
-
 #include <string>
+#include <unordered_map>
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 
@@ -22,4 +22,7 @@ public:
 private:
     std::string readFile(const std::string& path);
     unsigned int compile(unsigned int type, const std::string& source);
+    int getUniformLocation(const std::string& name) const;
+    // Cache pour éviter d'interroger le driver GPU à chaque frame
+    mutable std::unordered_map<std::string, int> uniformLocationCache;
 };

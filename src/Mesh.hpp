@@ -7,6 +7,8 @@
 struct Vertex {
     glm::vec3 Position;
     glm::vec3 Normal;
+
+    bool operator==(const Vertex&) const = default;
 };
 
 class Mesh {

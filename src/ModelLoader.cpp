@@ -1,9 +1,18 @@
 #include "ModelLoader.hpp"
 #include <iostream>
 #include <vector>
+#include <unordered_map>
 
 #define TINYOBJLOADER_IMPLEMENTATION
 #include <tiny_obj_loader.h>
+
+struct VertexHash {
+    std::size_t operator()(const Vertex& v) const noexcept {
+        auto h1 = std::hash<float>{}(v.Position.x) ^ (std::hash<float>{}(v.Position.y) << 1) ^ (std::hash<float>{}(v.Position.z) << 2);
+        auto h2 = std::hash<float>{}(v.Normal.x)   ^ (std::hash<float>{}(v.Normal.y) << 1)   ^ (std::hash<float>{}(v.Normal.z) << 2);
+        return h1 ^ (h2 << 1);
+    }
+};
 
 namespace ModelLoader {
 
@@ -69,11 +78,13 @@ bool loadOBJ(const std::string& filepath, std::vector<Vertex>& outVertices, std:
         }
     }
 
-    // Construction du buffer de sommets indexé
+    // Construction du buffer de sommets réellement indexé
+    std::unordered_map<Vertex, unsigned int, VertexHash> uniqueVertices{};
+    uniqueVertices.reserve(attrib.vertices.size() / 3);
+
     for (const auto& shape : shapes) {
         for (const auto& index : shape.mesh.indices) {
             Vertex vertex{};
-
             vertex.Position = {
                 attrib.vertices[3 * index.vertex_index + 0],
                 attrib.vertices[3 * index.vertex_index + 1],
@@ -90,8 +101,11 @@ bool loadOBJ(const std::string& filepath, std::vector<Vertex>& outVertices, std:
                 vertex.Normal = generatedNormals[index.vertex_index];
             }
 
-            outIndices.push_back(static_cast<unsigned int>(outVertices.size()));
-            outVertices.push_back(vertex);
+            auto [it, inserted] = uniqueVertices.try_emplace(vertex, static_cast<unsigned int>(outVertices.size()));
+            if (inserted) {
+                outVertices.push_back(vertex);
+            }
+            outIndices.push_back(it->second);
         }
     }
 
