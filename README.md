@@ -3,7 +3,7 @@
 A lightweight, cross-platform real-time 3D renderer written in modern C++20 using OpenGL 3.3 (Core Profile), GLSL, and CMake. Designed from scratch to demonstrate low-level graphics pipeline architecture, deterministic memory ownership, and interactive scene inspection.
 
 <p align="center">
-  <img src="docs/screenshot.png" alt="Renderer Preview" width="800">
+  <img src="image.png" alt="Renderer Preview" width="800">
 </p>
 
 ---
