@@ -29,20 +29,25 @@ A lightweight, cross-platform real-time 3D renderer written in modern C++20 usin
 
 ## Architecture Overview
 
+```text
 cpp-3d-renderer/
-├── assets/             # 3D models (.obj) and test meshes (ignored in git)
-├── docs/               # Screenshots and visual documentation
-├── shaders/            # Custom programmable GLSL shaders
-│   ├── basic.vert      # Model-View-Projection transforms, normal propagation
-│   └── basic.frag      # Blinn-Phong lighting and specular calculation
+├── assets/              # 3D models (.obj) and test meshes
+├── docs/                # Screenshots and visual documentation
+├── shaders/             # Custom programmable GLSL shaders
+│   ├── basic.vert       # Model-View-Projection & normal propagation
+│   └── basic.frag       # Blinn-Phong lighting & specular calculation
 ├── src/
-│   ├── Camera.hpp      # First-person view matrix & input processing
-│   ├── Mesh.hpp/cpp    # RAII-managed VAO, VBO, and EBO abstractions
-│   ├── ModelLoader.hpp # OBJ parsing pipeline interfacing tinyobjloader
-│   ├── Shader.hpp/cpp  # Shader compilation, linking, and uniform dispatch
-│   └── main.cpp        # Window initialization, ImGui render loop, and events
-├── .gitignore          # Build artifacts, IDE caches, and local assets
-└── CMakeLists.txt      # Root modern CMake configuration
+│   ├── Camera.hpp       # First-person view matrix & input processing
+│   ├── GeometryMath.hpp # Vector geometry & normal computation
+│   ├── Mesh.hpp/cpp     # RAII-managed VAO, VBO, and EBO abstractions
+│   ├── ModelLoader.hpp  # OBJ parsing pipeline interfacing tinyobjloader
+│   ├── Shader.hpp/cpp   # Shader compilation & uniform dispatch
+│   └── main.cpp         # Window loop, ImGui overlay, and scene logic
+├── tests/               # GoogleTest unit test suite
+│   └── test_geometry.cpp# Vector math & normal calculation tests
+├── .gitignore           # Build artifacts, IDE caches, and local assets
+└── CMakeLists.txt       # Root modern CMake configuration
+```
 
 ---
 
