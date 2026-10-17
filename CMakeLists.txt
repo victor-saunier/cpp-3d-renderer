@@ -83,3 +83,24 @@ target_include_directories(RendererApp PRIVATE ${tinyobjloader_SOURCE_DIR})
 
 # Liens des bibliothèques vers l'exécutable
 target_link_libraries(RendererApp PRIVATE glfw glad glm::glm imgui)
+
+# 6. GoogleTest & Suite de Tests Automatisés
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+)
+# Empêche GTest de modifier la gestion du runtime CRT sous MSVC
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+enable_testing()
+
+add_executable(EngineTests 
+    tests/test_geometry.cpp
+)
+target_include_directories(EngineTests PRIVATE src/)
+target_link_libraries(EngineTests PRIVATE GTest::gtest_main glm::glm)
+
+include(GoogleTest)
+gtest_discover_tests(EngineTests)
