@@ -127,6 +127,8 @@ int main(int argc, char* argv[]) {
     glfwSetKeyCallback(window, keyCallback);
     glfwSetFramebufferSizeCallback(window, framebufferSizeCallback);
 
+    // Taille en pixels du framebuffer : peut différer de la taille fenêtre sur écran HiDPI (Retina)
+    glfwGetFramebufferSize(window, &windowWidth, &windowHeight);
     glViewport(0, 0, windowWidth, windowHeight);
     glEnable(GL_DEPTH_TEST);
 
@@ -170,6 +172,9 @@ int main(int argc, char* argv[]) {
         glm::vec3 lightPosition(2.0f, 4.0f, 3.0f);
         float shininess = 64.0f;
         float modelScale = 1.0f;
+
+        // Sinon le 1er deltaTime inclurait tout le temps de chargement (saut de caméra)
+        lastFrame = static_cast<float>(glfwGetTime());
 
         while (!glfwWindowShouldClose(window)) {
             float currentFrame = static_cast<float>(glfwGetTime());
