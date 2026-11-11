@@ -68,7 +68,8 @@ void processInput(GLFWwindow* window) {
         glfwSetWindowShouldClose(window, true);
 
     ImGuiIO& io = ImGui::GetIO();
-    if (io.WantCaptureKeyboard) return;
+    if (io.WantCaptureKeyboard)
+        return;
 
     if (cursorLocked) {
         if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS || glfwGetKey(window, GLFW_KEY_Z) == GLFW_PRESS)
@@ -221,7 +222,8 @@ int main(int argc, char* argv[]) {
             model = glm::scale(model, glm::vec3(modelScale));
 
             glm::mat4 view = camera.getViewMatrix();
-            glm::mat4 projection = glm::perspective(glm::radians(45.0f), static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 100.0f);
+            glm::mat4 projection = glm::perspective(
+                glm::radians(45.0f), static_cast<float>(windowWidth) / static_cast<float>(windowHeight), 0.1f, 100.0f);
 
             basicShader.use();
             basicShader.setMat4("model", model);
@@ -229,10 +231,10 @@ int main(int argc, char* argv[]) {
             basicShader.setMat4("projection", projection);
 
             basicShader.setVec3("objectColor", objectColor);
-            basicShader.setVec3("lightColor",  lightColor);
-            basicShader.setVec3("lightPos",    lightPosition);
-            basicShader.setVec3("viewPos",     camera.position);
-            basicShader.setFloat("shininess",  shininess);
+            basicShader.setVec3("lightColor", lightColor);
+            basicShader.setVec3("lightPos", lightPosition);
+            basicShader.setVec3("viewPos", camera.position);
+            basicShader.setFloat("shininess", shininess);
 
             modelMesh.draw();
 

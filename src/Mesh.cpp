@@ -19,7 +19,8 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>&
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(), GL_STATIC_DRAW);
 
     // Attribut 0 : Position (x, y, z)
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), reinterpret_cast<void*>(offsetof(Vertex, Position)));
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex),
+                          reinterpret_cast<void*>(offsetof(Vertex, Position)));
     glEnableVertexAttribArray(0);
 
     // Attribut 1 : Normale (nx, ny, nz)
@@ -30,9 +31,12 @@ Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>&
 }
 
 Mesh::~Mesh() {
-    if (EBO != 0) glDeleteBuffers(1, &EBO);
-    if (VBO != 0) glDeleteBuffers(1, &VBO);
-    if (VAO != 0) glDeleteVertexArrays(1, &VAO);
+    if (EBO != 0)
+        glDeleteBuffers(1, &EBO);
+    if (VBO != 0)
+        glDeleteBuffers(1, &VBO);
+    if (VAO != 0)
+        glDeleteVertexArrays(1, &VAO);
 }
 
 void Mesh::draw() const {

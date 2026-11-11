@@ -8,8 +8,10 @@
 
 struct VertexHash {
     std::size_t operator()(const Vertex& v) const noexcept {
-        auto h1 = std::hash<float>{}(v.Position.x) ^ (std::hash<float>{}(v.Position.y) << 1) ^ (std::hash<float>{}(v.Position.z) << 2);
-        auto h2 = std::hash<float>{}(v.Normal.x)   ^ (std::hash<float>{}(v.Normal.y) << 1)   ^ (std::hash<float>{}(v.Normal.z) << 2);
+        auto h1 = std::hash<float>{}(v.Position.x) ^ (std::hash<float>{}(v.Position.y) << 1) ^
+                  (std::hash<float>{}(v.Position.z) << 2);
+        auto h2 = std::hash<float>{}(v.Normal.x) ^ (std::hash<float>{}(v.Normal.y) << 1) ^
+                  (std::hash<float>{}(v.Normal.z) << 2);
         return h1 ^ (h2 << 1);
     }
 };
@@ -82,19 +84,13 @@ bool loadOBJ(const std::string& filepath, std::vector<Vertex>& outVertices, std:
     for (const auto& shape : shapes) {
         for (const auto& index : shape.mesh.indices) {
             Vertex vertex{};
-            vertex.Position = {
-                attrib.vertices[3 * index.vertex_index + 0],
-                attrib.vertices[3 * index.vertex_index + 1],
-                attrib.vertices[3 * index.vertex_index + 2]
-            };
+            vertex.Position = {attrib.vertices[3 * index.vertex_index + 0], attrib.vertices[3 * index.vertex_index + 1],
+                               attrib.vertices[3 * index.vertex_index + 2]};
 
             // Décision par sommet, pas par fichier : normal_index vaut -1 si la face n'a pas de "vn"
             if (index.normal_index >= 0) {
-                vertex.Normal = {
-                    attrib.normals[3 * index.normal_index + 0],
-                    attrib.normals[3 * index.normal_index + 1],
-                    attrib.normals[3 * index.normal_index + 2]
-                };
+                vertex.Normal = {attrib.normals[3 * index.normal_index + 0], attrib.normals[3 * index.normal_index + 1],
+                                 attrib.normals[3 * index.normal_index + 2]};
             } else {
                 vertex.Normal = generatedNormals[index.vertex_index];
             }
@@ -107,8 +103,7 @@ bool loadOBJ(const std::string& filepath, std::vector<Vertex>& outVertices, std:
         }
     }
 
-    std::cout << "Modele " << filepath << " charge : " 
-              << outVertices.size() << " sommets traites." << std::endl;
+    std::cout << "Modele " << filepath << " charge : " << outVertices.size() << " sommets traites." << std::endl;
     return true;
 }
 

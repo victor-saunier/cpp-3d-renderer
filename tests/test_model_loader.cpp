@@ -8,7 +8,8 @@ const std::string dataDir = PROJECT_ROOT_DIR "/tests/data/";
 
 const Vertex* findByPosition(const std::vector<Vertex>& vertices, const glm::vec3& position) {
     for (const auto& v : vertices) {
-        if (glm::length(v.Position - position) < 1e-6f) return &v;
+        if (glm::length(v.Position - position) < 1e-6f)
+            return &v;
     }
     return nullptr;
 }
