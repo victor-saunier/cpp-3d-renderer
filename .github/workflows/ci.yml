@@ -14,7 +14,7 @@ jobs:
   linux-gcc-docker:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Build image (configure + compile, warnings as errors)
         # --network=host : le réseau Docker isolé du runner ne résout pas les noms (apt échoue)
         run: docker build --network=host -t cpp-3d-renderer .
@@ -25,7 +25,7 @@ jobs:
   windows-msvc:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Configure
         run: cmake -S . -B build -DRENDERER_WARNINGS_AS_ERRORS=ON
       - name: Build
@@ -37,6 +37,6 @@ jobs:
   format:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Check formatting
         run: pipx run clang-format==22.1.3 --dry-run --Werror src/*.cpp src/*.hpp tests/*.cpp
