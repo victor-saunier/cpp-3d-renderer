@@ -16,7 +16,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build image (configure + compile, warnings as errors)
-        run: docker build -t cpp-3d-renderer .
+        # --network=host : le réseau Docker isolé du runner ne résout pas les noms (apt échoue)
+        run: docker build --network=host -t cpp-3d-renderer .
       - name: Run tests
         run: docker run --rm cpp-3d-renderer
 
