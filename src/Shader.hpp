@@ -21,7 +21,7 @@ public:
 
 private:
     std::string readFile(const std::string& path);
-    unsigned int compile(unsigned int type, const std::string& source);
+    unsigned int compile(unsigned int type, const std::string& source, const std::string& path);
     int getUniformLocation(const std::string& name) const;
     // Cache pour éviter d'interroger le driver GPU à chaque frame
     mutable std::unordered_map<std::string, int> uniformLocationCache;
