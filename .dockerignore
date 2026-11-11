@@ -1,0 +1,7 @@
+# Ne pas envoyer au build Docker : artefacts locaux (le build se fait dans le conteneur)
+build/
+.git/
+.vscode/
+.cache/
+imgui.ini
+assets/model.obj
