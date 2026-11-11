@@ -35,14 +35,18 @@ public:
 
     void processKeyboard(CameraDirection direction, float deltaTime) {
         float velocity = speed * deltaTime;
-        if (direction == CameraDirection::FORWARD)  position += front * velocity;
-        if (direction == CameraDirection::BACKWARD) position -= front * velocity;
-        if (direction == CameraDirection::LEFT)     position -= right * velocity;
-        if (direction == CameraDirection::RIGHT)    position += right * velocity;
+        if (direction == CameraDirection::FORWARD)
+            position += front * velocity;
+        if (direction == CameraDirection::BACKWARD)
+            position -= front * velocity;
+        if (direction == CameraDirection::LEFT)
+            position -= right * velocity;
+        if (direction == CameraDirection::RIGHT)
+            position += right * velocity;
     }
 
     void processMouseMovement(float xoffset, float yoffset) {
-        yaw   += xoffset * sensitivity;
+        yaw += xoffset * sensitivity;
         pitch += yoffset * sensitivity;
 
         pitch = std::clamp(pitch, -85.0f, 85.0f);
@@ -61,6 +65,6 @@ private:
         front = glm::normalize(newFront);
 
         right = glm::normalize(glm::cross(front, worldUp));
-        up    = glm::normalize(glm::cross(right, front));
+        up = glm::normalize(glm::cross(right, front));
     }
 };

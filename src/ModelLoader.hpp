@@ -5,5 +5,5 @@
 #include "Vertex.hpp"
 
 namespace ModelLoader {
-    bool loadOBJ(const std::string& filepath, std::vector<Vertex>& outVertices, std::vector<unsigned int>& outIndices);
+bool loadOBJ(const std::string& filepath, std::vector<Vertex>& outVertices, std::vector<unsigned int>& outIndices);
 }
