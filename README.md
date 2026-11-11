@@ -1,5 +1,7 @@
 # Real-Time 3D Rendering Engine
 
+[![CI](https://github.com/victor-saunier/cpp-3d-renderer/actions/workflows/ci.yml/badge.svg)](https://github.com/victor-saunier/cpp-3d-renderer/actions/workflows/ci.yml)
+
 A lightweight, cross-platform real-time 3D renderer written in modern C++20 using OpenGL 3.3 (Core Profile), GLSL, and CMake. Designed from scratch to demonstrate low-level graphics pipeline architecture, deterministic memory ownership, and interactive scene inspection.
 
 <p align="center">
@@ -72,6 +74,13 @@ cmake --build build --config Release
 The app loads, in order: the path given as first argument, then `assets/model.obj` (git-ignored, bring your own), then the bundled `assets/cube.obj`. Shader and asset paths are resolved from the source directory, so the executable can be launched from any working directory.
 
 ./build/RendererApp path/to/model.obj
+
+### Docker (Linux build + unit tests, no GPU or display needed)
+docker build -t cpp-3d-renderer .
+docker run --rm cpp-3d-renderer
+
+### Formatting
+uvx clang-format==22.1.3 -i src/*.cpp src/*.hpp tests/*.cpp
 
 ---
 
