@@ -1,12 +1,27 @@
 # Tolérance pour les dépendances externes écrites pour de vieux CMake (GLAD)
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
 
-cmake_minimum_required(VERSION 3.20)
+# 3.25 : option SYSTEM de FetchContent (avertissements des dépendances masqués)
+cmake_minimum_required(VERSION 3.25)
 project(Cpp3DRenderer VERSION 0.1.0 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# Avertissements stricts, appliqués à NOS cibles uniquement (pas au code des dépendances)
+option(RENDERER_WARNINGS_AS_ERRORS "Traiter les avertissements comme des erreurs (activé en CI)" OFF)
+if(MSVC)
+    set(RENDERER_WARNINGS /W4 /permissive-)
+    if(RENDERER_WARNINGS_AS_ERRORS)
+        list(APPEND RENDERER_WARNINGS /WX)
+    endif()
+else()
+    set(RENDERER_WARNINGS -Wall -Wextra -Wpedantic)
+    if(RENDERER_WARNINGS_AS_ERRORS)
+        list(APPEND RENDERER_WARNINGS -Werror)
+    endif()
+endif()
 
 include(FetchContent)
 
@@ -15,6 +30,7 @@ FetchContent_Declare(
     glfw
     URL https://github.com/glfw/glfw/releases/download/3.4/glfw-3.4.zip
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SYSTEM
 )
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -27,6 +43,7 @@ FetchContent_Declare(
     glad
     URL https://github.com/Dav1dde/glad/archive/refs/tags/v0.1.36.zip
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SYSTEM
 )
 FetchContent_MakeAvailable(glad)
 
@@ -35,6 +52,7 @@ FetchContent_Declare(
     glm
     URL https://github.com/g-truc/glm/archive/refs/tags/1.0.1.zip
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SYSTEM
 )
 FetchContent_MakeAvailable(glm)
 
@@ -43,6 +61,7 @@ FetchContent_Declare(
     imgui
     URL https://github.com/ocornut/imgui/archive/refs/tags/v1.91.8.zip
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SYSTEM
 )
 FetchContent_MakeAvailable(imgui)
 
@@ -56,7 +75,7 @@ add_library(imgui STATIC
     ${imgui_SOURCE_DIR}/backends/imgui_impl_glfw.cpp
     ${imgui_SOURCE_DIR}/backends/imgui_impl_opengl3.cpp
 )
-target_include_directories(imgui PUBLIC 
+target_include_directories(imgui SYSTEM PUBLIC
     ${imgui_SOURCE_DIR} 
     ${imgui_SOURCE_DIR}/backends
 )
@@ -67,6 +86,7 @@ FetchContent_Declare(
     tinyobjloader
     GIT_REPOSITORY https://github.com/tinyobjloader/tinyobjloader.git
     GIT_TAG        v2.0.0rc13
+    SYSTEM
 )
 FetchContent_MakeAvailable(tinyobjloader)
 
@@ -79,19 +99,21 @@ add_executable(RendererApp
 )
 
 # Inclusion du dossier de headers tinyobjloader
-target_include_directories(RendererApp PRIVATE ${tinyobjloader_SOURCE_DIR})
+target_include_directories(RendererApp SYSTEM PRIVATE ${tinyobjloader_SOURCE_DIR})
 
 # shortcut: chemin absolu figé à la configuration (non relocalisable) ; passer à des chemins relatifs à l'exécutable pour distribuer l'app
 target_compile_definitions(RendererApp PRIVATE PROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 
 # Liens des bibliothèques vers l'exécutable
 target_link_libraries(RendererApp PRIVATE glfw glad glm::glm imgui)
+target_compile_options(RendererApp PRIVATE ${RENDERER_WARNINGS})
 
 # 6. GoogleTest & Suite de Tests Automatisés
 FetchContent_Declare(
     googletest
     URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
     DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    SYSTEM
 )
 # Empêche GTest de modifier la gestion du runtime CRT sous MSVC
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -104,9 +126,11 @@ add_executable(EngineTests
     tests/test_model_loader.cpp
     src/ModelLoader.cpp
 )
-target_include_directories(EngineTests PRIVATE src/ ${tinyobjloader_SOURCE_DIR})
+target_include_directories(EngineTests PRIVATE src/)
+target_include_directories(EngineTests SYSTEM PRIVATE ${tinyobjloader_SOURCE_DIR})
 target_compile_definitions(EngineTests PRIVATE PROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 target_link_libraries(EngineTests PRIVATE GTest::gtest_main glm::glm)
+target_compile_options(EngineTests PRIVATE ${RENDERER_WARNINGS})
 
 include(GoogleTest)
 gtest_discover_tests(EngineTests)
