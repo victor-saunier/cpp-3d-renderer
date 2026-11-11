@@ -15,6 +15,16 @@ const Vertex* findByPosition(const std::vector<Vertex>& vertices, const glm::vec
 
 } // namespace
 
+// Le cube versionné (modèle par défaut) : 8 positions x 3 normales de face = 24 sommets uniques
+TEST(ModelLoaderTest, BundledCubeDeduplicatesToTwentyFourVertices) {
+    std::vector<Vertex> vertices;
+    std::vector<unsigned int> indices;
+    ASSERT_TRUE(ModelLoader::loadOBJ(PROJECT_ROOT_DIR "/assets/cube.obj", vertices, indices));
+
+    EXPECT_EQ(indices.size(), 36u); // 12 triangles
+    EXPECT_EQ(vertices.size(), 24u);
+}
+
 // Sans "vn" : le sommet partagé est dédupliqué et sa normale est pondérée par l'aire des faces
 TEST(ModelLoaderTest, GeneratedNormalsAreAreaWeightedAndShared) {
     std::vector<Vertex> vertices;

@@ -81,6 +81,9 @@ add_executable(RendererApp
 # Inclusion du dossier de headers tinyobjloader
 target_include_directories(RendererApp PRIVATE ${tinyobjloader_SOURCE_DIR})
 
+# shortcut: chemin absolu figé à la configuration (non relocalisable) ; passer à des chemins relatifs à l'exécutable pour distribuer l'app
+target_compile_definitions(RendererApp PRIVATE PROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
+
 # Liens des bibliothèques vers l'exécutable
 target_link_libraries(RendererApp PRIVATE glfw glad glm::glm imgui)
 
