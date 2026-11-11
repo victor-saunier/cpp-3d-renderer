@@ -1,4 +1,5 @@
 #include "Mesh.hpp"
+#include <cstddef> // offsetof
 
 Mesh::Mesh(const std::vector<Vertex>& vertices, const std::vector<unsigned int>& indices) {
     indexCount = static_cast<GLsizei>(indices.size());
