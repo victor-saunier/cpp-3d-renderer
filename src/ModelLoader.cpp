@@ -38,43 +38,40 @@ bool loadOBJ(const std::string& filepath, std::vector<Vertex>& outVertices, std:
     outVertices.clear();
     outIndices.clear();
 
-    const bool hasFileNormals = !attrib.normals.empty();
-    std::vector<glm::vec3> generatedNormals;
+    // Normales lissées calculées pour chaque sommet. Toujours remplies : une face sans "vn"
+    // peut apparaître même dans un fichier qui fournit des normales ailleurs (fichier mixte).
+    std::vector<glm::vec3> generatedNormals(attrib.vertices.size() / 3, glm::vec3(0.0f));
 
-    // Si le fichier .obj ne fournit aucune normale, on les calcule mathématiquement
-    if (!hasFileNormals) {
-        generatedNormals.assign(attrib.vertices.size() / 3, glm::vec3(0.0f));
+    for (const auto& shape : shapes) {
+        size_t indexOffset = 0;
+        for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); ++f) {
+            const auto fv = shape.mesh.num_face_vertices[f];
+            if (fv == 3) {
+                int i0 = shape.mesh.indices[indexOffset + 0].vertex_index;
+                int i1 = shape.mesh.indices[indexOffset + 1].vertex_index;
+                int i2 = shape.mesh.indices[indexOffset + 2].vertex_index;
 
-        for (const auto& shape : shapes) {
-            size_t indexOffset = 0;
-            for (size_t f = 0; f < shape.mesh.num_face_vertices.size(); ++f) {
-                const auto fv = shape.mesh.num_face_vertices[f];
-                if (fv == 3) {
-                    int i0 = shape.mesh.indices[indexOffset + 0].vertex_index;
-                    int i1 = shape.mesh.indices[indexOffset + 1].vertex_index;
-                    int i2 = shape.mesh.indices[indexOffset + 2].vertex_index;
+                glm::vec3 v0(attrib.vertices[3 * i0 + 0], attrib.vertices[3 * i0 + 1], attrib.vertices[3 * i0 + 2]);
+                glm::vec3 v1(attrib.vertices[3 * i1 + 0], attrib.vertices[3 * i1 + 1], attrib.vertices[3 * i1 + 2]);
+                glm::vec3 v2(attrib.vertices[3 * i2 + 0], attrib.vertices[3 * i2 + 1], attrib.vertices[3 * i2 + 2]);
 
-                    glm::vec3 v0(attrib.vertices[3 * i0 + 0], attrib.vertices[3 * i0 + 1], attrib.vertices[3 * i0 + 2]);
-                    glm::vec3 v1(attrib.vertices[3 * i1 + 0], attrib.vertices[3 * i1 + 1], attrib.vertices[3 * i1 + 2]);
-                    glm::vec3 v2(attrib.vertices[3 * i2 + 0], attrib.vertices[3 * i2 + 1], attrib.vertices[3 * i2 + 2]);
+                // Non normalisé : sa longueur vaut 2x l'aire du triangle -> pondération par l'aire
+                glm::vec3 faceNormal = glm::cross(v1 - v0, v2 - v0);
 
-                    glm::vec3 faceNormal = glm::cross(v1 - v0, v2 - v0);
-
-                    generatedNormals[i0] += faceNormal;
-                    generatedNormals[i1] += faceNormal;
-                    generatedNormals[i2] += faceNormal;
-                }
-                indexOffset += fv;
+                generatedNormals[i0] += faceNormal;
+                generatedNormals[i1] += faceNormal;
+                generatedNormals[i2] += faceNormal;
             }
+            indexOffset += fv;
         }
+    }
 
-        // Normalisation des vecteurs accumulés
-        for (auto& n : generatedNormals) {
-            if (glm::length(n) > 1e-6f) {
-                n = glm::normalize(n);
-            } else {
-                n = glm::vec3(0.0f, 1.0f, 0.0f);
-            }
+    // Normalisation des vecteurs accumulés
+    for (auto& n : generatedNormals) {
+        if (glm::length(n) > 1e-6f) {
+            n = glm::normalize(n);
+        } else {
+            n = glm::vec3(0.0f, 1.0f, 0.0f);
         }
     }
 
@@ -91,7 +88,8 @@ bool loadOBJ(const std::string& filepath, std::vector<Vertex>& outVertices, std:
                 attrib.vertices[3 * index.vertex_index + 2]
             };
 
-            if (hasFileNormals && index.normal_index >= 0) {
+            // Décision par sommet, pas par fichier : normal_index vaut -1 si la face n'a pas de "vn"
+            if (index.normal_index >= 0) {
                 vertex.Normal = {
                     attrib.normals[3 * index.normal_index + 0],
                     attrib.normals[3 * index.normal_index + 1],

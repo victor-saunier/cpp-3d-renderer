@@ -1,0 +1,8 @@
+# Fichier mixte : la 1re face a des normales ("vn"), la 2e n'en a pas (normal_index = -1)
+v 0 0 0
+v 1 0 0
+v 0 1 0
+v 0 0 1
+vn 0 0 1
+f 1//1 2//1 3//1
+f 1 2 4

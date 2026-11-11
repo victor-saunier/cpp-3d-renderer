@@ -1,0 +1,10 @@
+# Deux triangles sans normales partageant le sommet 1 (origine)
+# Grand triangle dans le plan XY : aire 50, normale +Z
+# Petit triangle dans le plan XZ : aire 0.5, normale +Y
+v 0 0 0
+v 10 0 0
+v 0 10 0
+v 0 0 1
+v 1 0 0
+f 1 2 3
+f 1 4 5
