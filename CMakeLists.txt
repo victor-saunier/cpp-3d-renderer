@@ -96,10 +96,13 @@ FetchContent_MakeAvailable(googletest)
 
 enable_testing()
 
-add_executable(EngineTests 
+add_executable(EngineTests
     tests/test_geometry.cpp
+    tests/test_model_loader.cpp
+    src/ModelLoader.cpp
 )
-target_include_directories(EngineTests PRIVATE src/)
+target_include_directories(EngineTests PRIVATE src/ ${tinyobjloader_SOURCE_DIR})
+target_compile_definitions(EngineTests PRIVATE PROJECT_ROOT_DIR="${CMAKE_SOURCE_DIR}")
 target_link_libraries(EngineTests PRIVATE GTest::gtest_main glm::glm)
 
 include(GoogleTest)
