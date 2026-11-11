@@ -2,6 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <filesystem>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -138,7 +139,11 @@ int main(int argc, char* argv[]) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330");
 
-    {
+    int exitCode = 0;
+
+    // Le bloc try est aussi la portée de vie des objets GL : Shader et Mesh sont détruits
+    // en sortant du bloc (normalement ou par exception), donc AVANT glfwTerminate() plus bas.
+    try {
         // Chemins indépendants du dossier courant (lancement depuis build/, l'IDE ou l'explorateur)
         const std::string root = PROJECT_ROOT_DIR;
         Shader basicShader(root + "/shaders/basic.vert", root + "/shaders/basic.frag");
@@ -155,8 +160,7 @@ int main(int argc, char* argv[]) {
         std::vector<unsigned int> modelIndices;
 
         if (!ModelLoader::loadOBJ(modelPath, modelVertices, modelIndices)) {
-            std::cerr << "Echec de chargement du modele 3D !" << std::endl;
-            return -1;
+            throw std::runtime_error("Echec de chargement du modele 3D : " + modelPath);
         }
 
         Mesh modelMesh(modelVertices, modelIndices);
@@ -232,13 +236,17 @@ int main(int argc, char* argv[]) {
 
             glfwSwapBuffers(window);
         }
-
-        ImGui_ImplOpenGL3_Shutdown();
-        ImGui_ImplGlfw_Shutdown();
-        ImGui::DestroyContext();
+    } catch (const std::exception& e) {
+        std::cerr << "Erreur fatale : " << e.what() << std::endl;
+        exitCode = -1;
     }
+
+    // Exécuté sur les deux chemins. Le backend ImGui libère aussi des objets GL : avant la fenêtre.
+    ImGui_ImplOpenGL3_Shutdown();
+    ImGui_ImplGlfw_Shutdown();
+    ImGui::DestroyContext();
 
     glfwDestroyWindow(window);
     glfwTerminate();
-    return 0;
+    return exitCode;
 }
