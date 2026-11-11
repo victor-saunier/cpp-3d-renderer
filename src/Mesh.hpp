@@ -2,14 +2,7 @@
 
 #include <vector>
 #include <glad/glad.h>
-#include <glm/glm.hpp>
-
-struct Vertex {
-    glm::vec3 Position;
-    glm::vec3 Normal;
-
-    bool operator==(const Vertex&) const = default;
-};
+#include "Vertex.hpp"
 
 class Mesh {
 public:
