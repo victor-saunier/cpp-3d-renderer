@@ -68,6 +68,11 @@ cmake -B build
 cmake --build build --config Release
 .\build\Release\RendererApp.exe
 
+### Choosing a model
+The app loads, in order: the path given as first argument, then `assets/model.obj` (git-ignored, bring your own), then the bundled `assets/cube.obj`. Shader and asset paths are resolved from the source directory, so the executable can be launched from any working directory.
+
+./build/RendererApp path/to/model.obj
+
 ---
 
 ## Controls

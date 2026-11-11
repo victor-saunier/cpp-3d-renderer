@@ -1,6 +1,8 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <filesystem>
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include <glm/glm.hpp>
@@ -91,7 +93,7 @@ void keyCallback(GLFWwindow* window, int key, int /*scancode*/, int action, int 
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
     if (!glfwInit()) {
         std::cerr << "Erreur : initialisation GLFW impossible" << std::endl;
         return -1;
@@ -137,13 +139,22 @@ int main() {
     ImGui_ImplOpenGL3_Init("#version 330");
 
     {
-        Shader basicShader("shaders/basic.vert", "shaders/basic.frag");
+        // Chemins indépendants du dossier courant (lancement depuis build/, l'IDE ou l'explorateur)
+        const std::string root = PROJECT_ROOT_DIR;
+        Shader basicShader(root + "/shaders/basic.vert", root + "/shaders/basic.frag");
 
-        // Chargement du modèle .obj
+        // Modèle : argument en ligne de commande, sinon assets/model.obj, sinon le cube versionné
+        std::string modelPath = root + "/assets/model.obj";
+        if (argc > 1) {
+            modelPath = argv[1];
+        } else if (!std::filesystem::exists(modelPath)) {
+            modelPath = root + "/assets/cube.obj";
+        }
+
         std::vector<Vertex> modelVertices;
         std::vector<unsigned int> modelIndices;
 
-        if (!ModelLoader::loadOBJ("assets/model.obj", modelVertices, modelIndices)) {
+        if (!ModelLoader::loadOBJ(modelPath, modelVertices, modelIndices)) {
             std::cerr << "Echec de chargement du modele 3D !" << std::endl;
             return -1;
         }
