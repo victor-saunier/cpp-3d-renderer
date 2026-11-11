@@ -1,0 +1,41 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Le workflow ne fait que lire le dépôt
+permissions:
+  contents: read
+
+jobs:
+  # Linux : réutilise le Dockerfile, donc "ça marche dans Docker" == "ça marche en CI"
+  linux-gcc-docker:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image (configure + compile, warnings as errors)
+        run: docker build -t cpp-3d-renderer .
+      - name: Run tests
+        run: docker run --rm cpp-3d-renderer
+
+  # Windows : la plateforme de développement principale, build natif MSVC
+  windows-msvc:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S . -B build -DRENDERER_WARNINGS_AS_ERRORS=ON
+      - name: Build
+        run: cmake --build build --config Release
+      - name: Run tests
+        run: ctest --test-dir build -C Release --output-on-failure
+
+  # Formatage : même version de clang-format qu'en local, sinon les règles peuvent différer
+  format:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check formatting
+        run: pipx run clang-format==22.1.3 --dry-run --Werror src/*.cpp src/*.hpp tests/*.cpp
