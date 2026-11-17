@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/victor-saunier/cpp-3d-renderer/actions/workflows/ci.yml/badge.svg)](https://github.com/victor-saunier/cpp-3d-renderer/actions/workflows/ci.yml)
 
-A lightweight, cross-platform real-time 3D renderer written in modern C++20 using OpenGL 3.3 (Core Profile), GLSL, and CMake. Designed from scratch to demonstrate low-level graphics pipeline architecture, deterministic memory ownership, and interactive scene inspection.
+A real-time 3D renderer written in C++20 with OpenGL 3.3 (Core Profile). It loads a Wavefront `.obj` model, lights it with Blinn-Phong shading, and lets you fly around it with a first-person camera while tuning the scene from a Dear ImGui panel.
 
 <p align="center">
   <img src="image.png" alt="Renderer Preview" width="800">
@@ -10,45 +10,63 @@ A lightweight, cross-platform real-time 3D renderer written in modern C++20 usin
 
 ---
 
-## Technical Highlights
+## Features
 
-- Cross-Platform Target-Based CMake: Configured for native toolchain execution using GCC 13+ (Linux/WSL) and MSVC 19+ (Windows) via automated dependency acquisition with FetchContent (GLFW, GLAD, GLM, Dear ImGui, tinyobjloader).
-- Deterministic Memory Management (RAII): Encapsulated GPU resources (Shader, Mesh) with deleted copy constructors (= delete) and controlled destruction to eliminate duplicate handles and prevent GPU resource leaks.
-- Indexed Rendering Pipeline (VAO / VBO / EBO): Efficient vertex caching via Element Buffer Objects (glDrawElements), minimizing data redundancy and vertex processing overhead.
-- Automated Asset Processing: Wavefront .obj parsing using tinyobjloader, dynamic smooth normal computation via vector cross-products, and interleaved attribute layout.
-- Lighting Model: Multi-component Blinn-Phong illumination (ambient, diffuse, specular) implemented with custom GLSL shaders in world coordinates.
-- Real-Time Debug Overlay: Integrated Dear ImGui panel allowing real-time viewport telemetry (FPS, frame time, polygon count), light coordinate manipulation, and material property tuning.
-- Decoupled Camera System: Euler-angle first-person camera with delta-time normalized keyboard translation and mouse-look navigation.
+- **Model loading**: `.obj` files are parsed with tinyobjloader. Vertices with the same position and normal are merged, and the mesh is drawn with an index buffer (`glDrawElements`).
+- **Normals**: normals from the file are used when a face has them. Missing ones are computed per vertex as the area-weighted average of the surrounding face normals (sum of cross products, normalized once).
+- **Lighting**: Blinn-Phong (ambient + diffuse + specular), computed per fragment in world space in GLSL shaders.
+- **GPU resource ownership (RAII)**: `Mesh` owns its VAO, VBO and EBO, and `Shader` owns its program. Both free them in their destructor and cannot be copied. Shader compile errors are printed with the file path, and a failed link throws an exception, so a broken shader stops the app instead of rendering nothing.
+- **Camera**: first-person camera driven by yaw and pitch. Movement speed is scaled by frame time, so it doesn't depend on the framerate.
+- **Debug panel (Dear ImGui)**: FPS and frame time, vertex and triangle count, model scale, light position and color, object color and shininess.
+
+## Engineering
+
+- **Unit tests** with GoogleTest: geometry math and the model loader (vertex deduplication, area-weighted normals, files mixing faces with and without normals).
+- **Continuous integration** with GitHub Actions on every pull request:
+  - Linux: GCC 13, built and tested inside the project's Docker image;
+  - Windows: MSVC, built natively;
+  - formatting check with clang-format.
+- **Strict warnings** on the project's own targets (`/W4` on MSVC, `-Wall -Wextra -Wpedantic` on GCC), treated as errors in CI.
+- **Dependencies** are downloaded by CMake (FetchContent): GLFW, glad, GLM, Dear ImGui, tinyobjloader, GoogleTest.
+
+### Memory saved by indexing
+
+Measured on the Stanford Bunny (69,451 triangles), with 24-byte vertices and 4-byte indices:
+
+| Layout | Contents | Size |
+| :--- | :--- | :--- |
+| Without index buffer | 208,353 vertices (3 per triangle) | 5.0 MB |
+| With index buffer | ~34,800 unique vertices + 208,353 indices | 1.7 MB |
+
+That's about two thirds less GPU memory for the geometry. The vertex and triangle counts are shown in the debug panel.
 
 ---
 
-## Performance Metrics
-
-- Framerate: Sustained 1,500+ FPS (sub-millisecond frame latency) on complex polygonal models (e.g., Stanford Bunny, 69K+ polygons) under modern hardware execution.
-- Memory Footprint: Indexed geometry layout reducing raw buffer memory by ~50% compared to non-indexed draw arrays.
-
----
-
-## Architecture Overview
+## Project Structure
 
 ```text
 cpp-3d-renderer/
-├── assets/              # 3D models (.obj) and test meshes
-├── docs/                # Screenshots and visual documentation
-├── shaders/             # Custom programmable GLSL shaders
-│   ├── basic.vert       # Model-View-Projection & normal propagation
-│   └── basic.frag       # Blinn-Phong lighting & specular calculation
+├── assets/
+│   └── cube.obj              # Bundled fallback model
+├── shaders/
+│   ├── basic.vert            # Model-view-projection transform, normals to world space
+│   └── basic.frag            # Blinn-Phong lighting
 ├── src/
-│   ├── Camera.hpp       # First-person view matrix & input processing
-│   ├── GeometryMath.hpp # Vector geometry & normal computation
-│   ├── Mesh.hpp/cpp     # RAII-managed VAO, VBO, and EBO abstractions
-│   ├── ModelLoader.hpp  # OBJ parsing pipeline interfacing tinyobjloader
-│   ├── Shader.hpp/cpp   # Shader compilation & uniform dispatch
-│   └── main.cpp         # Window loop, ImGui overlay, and scene logic
-├── tests/               # GoogleTest unit test suite
-│   └── test_geometry.cpp# Vector math & normal calculation tests
-├── .gitignore           # Build artifacts, IDE caches, and local assets
-└── CMakeLists.txt       # Root modern CMake configuration
+│   ├── Camera.hpp            # First-person camera (view matrix, keyboard and mouse input)
+│   ├── GeometryMath.hpp      # Triangle normal computation
+│   ├── Mesh.hpp/.cpp         # RAII wrapper for VAO, VBO and EBO
+│   ├── ModelLoader.hpp/.cpp  # OBJ loading, vertex deduplication, normal generation
+│   ├── Shader.hpp/.cpp       # Shader compilation, linking and uniforms
+│   ├── Vertex.hpp            # Vertex layout (position + normal), no OpenGL dependency
+│   └── main.cpp              # Window, render loop and ImGui panel
+├── tests/
+│   ├── data/                 # Small .obj files used by the tests
+│   ├── test_geometry.cpp
+│   └── test_model_loader.cpp
+├── .github/workflows/ci.yml  # CI pipeline
+├── .clang-format             # Code style
+├── Dockerfile                # Reproducible Linux build and test run
+└── CMakeLists.txt
 ```
 
 ---
@@ -56,31 +74,48 @@ cpp-3d-renderer/
 ## Build and Run
 
 ### Prerequisites
-- C++ Compiler: GCC 13+ (Linux) or MSVC 2022+ (Windows) supporting C++20.
-- Build System: CMake 3.20+.
-- Graphics: Hardware or driver supporting OpenGL 3.3 Core Profile.
+- A C++20 compiler: GCC 13+ (Linux) or Visual Studio 2022+ (Windows).
+- CMake 3.25+, Git, and Python 3 (glad generates its OpenGL loader with Python during configuration).
+- A GPU and driver supporting OpenGL 3.3 Core Profile.
+- On Linux, the X11 and OpenGL development headers (the exact package list is in the [Dockerfile](Dockerfile)).
 
-### Linux / WSL (GCC)
+### Linux (GCC)
+```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build --config Release
+cmake --build build
 ./build/RendererApp
+```
 
-### Windows (MSVC / PowerShell)
+### Windows (MSVC, PowerShell)
+```powershell
 cmake -B build
 cmake --build build --config Release
 .\build\Release\RendererApp.exe
+```
 
 ### Choosing a model
 The app loads, in order: the path given as first argument, then `assets/model.obj` (git-ignored, bring your own), then the bundled `assets/cube.obj`. Shader and asset paths are resolved from the source directory, so the executable can be launched from any working directory.
 
+```bash
 ./build/RendererApp path/to/model.obj
+```
 
-### Docker (Linux build + unit tests, no GPU or display needed)
+### Running the tests
+```bash
+ctest --test-dir build --output-on-failure            # Linux
+ctest --test-dir build -C Release --output-on-failure # Windows
+```
+
+### Docker (Linux build and tests, no GPU or display needed)
+```bash
 docker build -t cpp-3d-renderer .
 docker run --rm cpp-3d-renderer
+```
 
 ### Formatting
+```bash
 uvx clang-format==22.1.3 -i src/*.cpp src/*.hpp tests/*.cpp
+```
 
 ---
 
@@ -88,7 +123,12 @@ uvx clang-format==22.1.3 -i src/*.cpp src/*.hpp tests/*.cpp
 
 | Input | Action |
 | :--- | :--- |
-| W, A, S, D / Z, Q, S, D | Translate camera forward / left / backward / right |
-| Mouse Motion | Free-look camera orientation (Pitch & Yaw) |
-| TAB | Toggle cursor capture between Camera Control and ImGui Panel |
-| ESC | Exit application |
+| W / Z | Move forward |
+| S | Move backward |
+| A / Q | Move left |
+| D | Move right |
+| Mouse | Look around |
+| TAB | Switch between camera control and the ImGui panel |
+| ESC | Quit |
+
+Both QWERTY (WASD) and AZERTY (ZQSD) layouts work.
